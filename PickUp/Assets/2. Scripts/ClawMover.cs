@@ -21,7 +21,7 @@ public class ClawMover : MonoBehaviour
 
     public Transform clawHeight;
 
-    // These are simple cubes used to compare movement limits
+
     public Transform leftLimit;
     public Transform rightLimit;
     public Transform frontLimit;
@@ -36,16 +36,24 @@ public class ClawMover : MonoBehaviour
     private bool isLoweringToRelease;
     private bool isRisingFromBasket;
     private bool isAutoDescending;
-
+    private bool isGrabbing;
     private CancellationTokenSource _cts;
 
-    // Use this for initialization
     void Start () {
         clawAnimator = claw.gameObject.GetComponent<Animator>();
         rigidBody = GetComponent<Rigidbody>();
         canControl = true;
         isReleasing = false;
+        isAutoDescending = false;
+        isGrabbing = false;
         _cts = new CancellationTokenSource();
+        
+        // Initialize basket flags
+        reachedBasket = new bool[3];
+        for (int i = 0; i < reachedBasket.Length; i++)
+        {
+            reachedBasket[i] = false;
+        }
 	}
 
     void OnDestroy()
@@ -54,10 +62,8 @@ public class ClawMover : MonoBehaviour
         _cts?.Dispose();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        // Handle input in Update instead of FixedUpdate for better responsiveness
         if (canControl && Input.GetKeyDown(KeyCode.Space))
         {
             isAutoDescending = true;
@@ -66,14 +72,36 @@ public class ClawMover : MonoBehaviour
     }
 
     void FixedUpdate () {
-        // Fix motor to claw's X/Z movement
+        // Sync motor and tubes position
         motor.transform.position = new Vector3(transform.position.x, motor.transform.position.y, transform.position.z);
         tubes.transform.position = new Vector3(tubes.transform.position.x, tubes.transform.position.y, motor.transform.position.z + tubeOffset);
 
-        // Release prize sequence
-        if (isReleasing)
+        if (isAutoDescending && !isGrabbing)
         {
-            if (clawHeight.position.y <= maxHeight)
+            float descendSpeed = clawSpeed;
+            if (clawHeight.position.y > minHeight)
+            {
+                transform.position = new Vector3(
+                    transform.position.x,
+                    Mathf.MoveTowards(transform.position.y, minHeight, descendSpeed * Time.fixedDeltaTime),
+                    transform.position.z
+                );
+            }
+            else
+            {
+                isAutoDescending = false;
+                isGrabbing = true;
+                CloseClawAsync().Forget();
+            }
+        }
+        else if (isReleasing)
+        {
+            // Handle releasing movement
+            bool reachedHeight = clawHeight.position.y <= maxHeight;
+            bool reachedX = transform.position.x >= leftLimit.transform.position.x + 0.5f;
+            bool reachedZ = transform.position.z >= frontLimit.transform.position.z + 0.5f;
+
+            if (!reachedHeight)
             {
                 transform.Translate(0, clawSpeed * Time.deltaTime, 0);
             }
@@ -82,7 +110,7 @@ public class ClawMover : MonoBehaviour
                 reachedBasket[0] = true;
             }
 
-            if (transform.position.x >= leftLimit.transform.position.x + 0.5f)
+            if (!reachedX)
             {
                 transform.Translate(speed * -1 * Time.deltaTime, 0, 0);
             }
@@ -91,7 +119,7 @@ public class ClawMover : MonoBehaviour
                 reachedBasket[1] = true;
             }
 
-            if (transform.position.z >= frontLimit.transform.position.z + 0.5f)
+            if (!reachedZ)
             {
                 transform.Translate(0, 0, speed * -1 * Time.deltaTime);
             }
@@ -99,13 +127,12 @@ public class ClawMover : MonoBehaviour
             {
                 reachedBasket[2] = true;
             }
-
-            // Check if claw is inside the basket
+            
             if (reachedBasket[0] && reachedBasket[1] && reachedBasket[2])
             {
                 isInBasket = true;
-
-                // Start coroutine to lower claw and release prize
+                isReleasing = false;
+                
                 if (isInBasket) {
                     ReleasePrizeInBasketAsync().Forget();
                     isInBasket = false;
@@ -139,30 +166,10 @@ public class ClawMover : MonoBehaviour
         {
             HandlePlayerMovement();
         }
-
-        // Handle descent separately from player control
-        if (isAutoDescending)
-        {
-            float descendSpeed = clawSpeed; // Increased speed for more responsive descent
-            if (clawHeight.position.y > minHeight)
-            {
-                transform.position = new Vector3(
-                    transform.position.x,
-                    Mathf.MoveTowards(transform.position.y, minHeight, descendSpeed * Time.fixedDeltaTime),
-                    transform.position.z
-                );
-            }
-            else
-            {
-                CloseClawAsync().Forget();
-                isAutoDescending = false;
-            }
-        }
     }
 
     private void HandlePlayerMovement()
     {
-        // Lateral Movement
         if (transform.position.x > leftLimit.transform.position.x && Input.GetKey(KeyCode.A))
         {
             transform.Translate(speed * -1 * Time.fixedDeltaTime, 0, 0);
@@ -171,8 +178,7 @@ public class ClawMover : MonoBehaviour
         {
             transform.Translate(speed * Time.fixedDeltaTime, 0, 0);
         }
-
-        // Forward Movement
+        
         if (transform.position.z < backLimit.transform.position.z && Input.GetKey(KeyCode.W))
         {
             transform.Translate(0, 0, speed * Time.fixedDeltaTime);
@@ -190,11 +196,12 @@ public class ClawMover : MonoBehaviour
             await UniTask.Delay(2000, cancellationToken: _cts.Token); // 2 seconds
             CloseClawAnimation();
             await UniTask.Delay(2000, cancellationToken: _cts.Token);
+            isGrabbing = false;
             isReleasing = true;
         }
         catch (System.OperationCanceledException)
         {
-            // Task was cancelled, cleanup if needed
+            // Handle cancellation
         }
     }
 
@@ -202,14 +209,14 @@ public class ClawMover : MonoBehaviour
     {
         try
         {
-            await UniTask.Delay(1500, cancellationToken: _cts.Token); // 1.5 seconds
+            await UniTask.Delay(1500, cancellationToken: _cts.Token);
             isLoweringToRelease = true;
             isReleasing = false;
             await UniTask.Delay(1500, cancellationToken: _cts.Token);
         }
         catch (System.OperationCanceledException)
         {
-            // Task was cancelled, cleanup if needed
+
         }
     }
 
@@ -217,7 +224,7 @@ public class ClawMover : MonoBehaviour
     {
         try
         {
-            await UniTask.Delay(1000, cancellationToken: _cts.Token); // 1 second
+            await UniTask.Delay(1000, cancellationToken: _cts.Token);
             OpenClawAnimation();
             await UniTask.Delay(1000, cancellationToken: _cts.Token);
             isRisingFromBasket = true;
@@ -227,7 +234,7 @@ public class ClawMover : MonoBehaviour
         }
         catch (System.OperationCanceledException)
         {
-            // Task was cancelled, cleanup if needed
+
         }
     }
 

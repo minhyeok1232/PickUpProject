@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd"
+>
+    <engine:VisualElement name="root" style="flex-grow: 1; align-items: center; justify-content: center;">
+        <engine:Label text="EXIT ↓" name="exitLabel" class="exit-label" />
+        <engine:VisualElement name="frame" class="frame">
+            <engine:VisualElement name="blurContainer" class="blur-container">
+                <engine:VisualElement name="prizeArea" class="prize-area">
+                    <engine:VisualElement name="giftBox" class="gift-box" />
+                </engine:VisualElement>
+            </engine:VisualElement>
+            <engine:Scroller name="revealScroller" class="reveal-scroller" />
+        </engine:VisualElement>
+        <engine:Label text="▲ 밑어올려서 상품 확인하기 ▲" name="guideLabel" class="guide-label" />
+        <engine:Label name="prizeNameLabel" class="prize-name" />
+    </engine:VisualElement>
+</engine:UXML> 

@@ -1,0 +1,77 @@
+.frame {
+    width: 200px;
+    height: 200px;
+    border-width: 2px;
+    border-color: rgb(255, 255, 255);
+    border-radius: 20px;
+    margin-bottom: 10px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.blur-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.1);
+    -unity-backdrop-filter: blur(10px);
+    transition: all 0.3s ease-out;
+}
+
+.prize-area {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+}
+
+.gift-box {
+    width: 80px;
+    height: 80px;
+    background-image: url('project://database/Assets/UI/Images/gift-box.png');
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.reveal-scroller {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+}
+
+.reveal-scroller:hover {
+    cursor: ns-resize;
+}
+
+.exit-label {
+    color: rgb(255, 255, 255);
+    font-size: 32px;
+    margin-bottom: 20px;
+    -unity-text-align: center;
+    -unity-font-style: bold;
+}
+
+.guide-label {
+    color: rgb(255, 255, 255);
+    font-size: 18px;
+    margin-top: 10px;
+    -unity-text-align: center;
+    -unity-font-style: bold;
+}
+
+.prize-name {
+    color: rgb(255, 255, 255);
+    font-size: 20px;
+    -unity-text-align: center;
+    margin-top: 10px;
+    display: none;
+}
+
+#prizeArea {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+} 
