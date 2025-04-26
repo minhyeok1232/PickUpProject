@@ -44,9 +44,9 @@ public class PrizeSelector : MonoBehaviour
         prizeNameLabel = root.Q<Label>("prizeNameLabel");
         prizeArea = root.Q<VisualElement>("prizeArea");
         
-        giftBox.RegisterCallback<PointerDownEvent>(OnPointerDown);
-        giftBox.RegisterCallback<PointerMoveEvent>(OnPointerMove);
-        giftBox.RegisterCallback<PointerUpEvent>(OnPointerUp);
+        prizeArea.RegisterCallback<PointerDownEvent>(OnPointerDown);
+        prizeArea.RegisterCallback<PointerMoveEvent>(OnPointerMove);
+        prizeArea.RegisterCallback<PointerUpEvent>(OnPointerUp);
 
         exitLabel.clicked += () =>
         {
@@ -66,9 +66,7 @@ public class PrizeSelector : MonoBehaviour
     {
         isDragging = true;
         dragStartY = evt.position.y;
-        initialPrizeAreaHeight = giftBox.resolvedStyle.height;
-        
-        Debug.Log($"GiftBox Top: {giftBox.resolvedStyle.top}, Left: {giftBox.resolvedStyle.left}");
+        initialPrizeAreaHeight = prizeArea.resolvedStyle.height;
     }
 
     void OnPointerMove(PointerMoveEvent evt)
@@ -78,37 +76,45 @@ public class PrizeSelector : MonoBehaviour
         float deltaY = dragStartY - evt.position.y; // 위로 올릴수록 양수
         float newHeight = Mathf.Max(initialPrizeAreaHeight - deltaY, minPrizeAreaHeight);
 
-        giftBox.style.height = new Length(newHeight, LengthUnit.Pixel);
+        prizeArea.style.height = new Length(newHeight, LengthUnit.Pixel);
     }
     
     void OnPointerUp(PointerUpEvent evt)
     {
         isDragging = false;
 
-        if (giftBox.resolvedStyle.height <= minPrizeAreaHeight + 1f)
+        float frameHeight = frame.resolvedStyle.height;
+        float currentHeight = prizeArea.resolvedStyle.height;
+
+        if (currentHeight <= frameHeight / 2.0f) // 절반 이상 열었으면
         {
-            Debug.Log("상자 완전 열림!");
-            // 여기에 연출 추가
+            StartCoroutine(AnimateLiftUpDown(true));
+        }
+        else 
+        {
+            StartCoroutine(AnimateLiftUpDown(false));
         }
     }
 
-    IEnumerator AnimateLiftUp()
+    IEnumerator AnimateLiftUpDown(bool bUp)
     {
-        float start = giftBox.resolvedStyle.top;
-        float end = -150f;
+        float startHeight = prizeArea.resolvedStyle.height;
+        float endHeight = 0.0f;
+        if (!bUp) endHeight = frame.resolvedStyle.height;  
+        
         float duration = 0.4f;
         float t = 0f;
 
         while (t < 1f)
         {
             t += Time.deltaTime / duration;
-            float eased = 1 - Mathf.Pow(1 - t, 3);
-            float currentY = Mathf.Lerp(start, end, eased);
-            giftBox.style.top = new Length(currentY, LengthUnit.Pixel);
+            float eased = 1 - Mathf.Pow(1 - t, 3); // EaseOutCubic
+            float currentHeight = Mathf.Lerp(startHeight, endHeight, eased);
+            prizeArea.style.height = new Length(currentHeight, LengthUnit.Pixel);
             yield return null;
         }
 
-        giftBox.style.top = new Length(end, LengthUnit.Pixel);
+        prizeArea.style.height = new Length(endHeight, LengthUnit.Pixel);
     }
 
     void OnCollisionEnter(Collision other)
