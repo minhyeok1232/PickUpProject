@@ -11,6 +11,7 @@
             <engine:VisualElement name="blurContainer" class="blur-container">
                 <engine:VisualElement name="prizeArea" class="prize-area">
                     <engine:VisualElement name="giftBox" class="gift-box" />
+                    <engine:VisualElement name="dragHandle" class="drag-handle" />
                 </engine:VisualElement>
             </engine:VisualElement>
             <engine:Scroller name="revealScroller" class="reveal-scroller" />

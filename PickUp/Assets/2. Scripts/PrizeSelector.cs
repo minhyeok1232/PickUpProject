@@ -1,10 +1,13 @@
+using System;
 using UnityEditor.Rendering;
 using UnityEditor.TerrainTools;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Cysharp.Threading.Tasks;
 using System.Threading;
+using UnityEditor;
 
 public class PrizeSelector : MonoBehaviour
 {
@@ -12,7 +15,7 @@ public class PrizeSelector : MonoBehaviour
     private UIDocument uiDocument;
     private VisualElement root;
     private Label prizeNameLabel;
-    private Label exitLabel;
+    private Button exitLabel;
     private VisualElement frame;
     private VisualElement giftBox;
     
@@ -20,6 +23,10 @@ public class PrizeSelector : MonoBehaviour
 
     private bool isDropping = false;
     private bool isMouseInside = false;
+    
+    // 
+    private float dragStartY;
+    private bool isDragging = false;
 
     void Start()
     {
@@ -27,62 +34,81 @@ public class PrizeSelector : MonoBehaviour
         root = uiDocument.rootVisualElement.Q<VisualElement>("root");
         if (root == null) return;
 
-        exitLabel = root.Q<Label>("exitLabel");
+        exitLabel = root.Q<Button>("exitLabel");
         frame = root.Q<VisualElement>("frame");
         giftBox = root.Q<VisualElement>("giftBox");
         prizeNameLabel = root.Q<Label>("prizeNameLabel");
         prizeArea = root.Q<VisualElement>("prizeArea");
+        
+        var dragHandler = giftBox.Q<VisualElement>("dragHandler");
+        
+        dragHandler.RegisterCallback<PointerDownEvent>(OnPointerDown);
+        dragHandler.RegisterCallback<PointerMoveEvent>(OnPointerMove);
+        dragHandler.RegisterCallback<PointerUpEvent>(OnPointerUp);
 
-        if (prizeArea != null)
+        exitLabel.clicked += () =>
         {
-            // 마우스 이벤트 등록
-            prizeArea.RegisterCallback<MouseEnterEvent>(OnMouseEnter);
-            prizeArea.RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
-            prizeArea.RegisterCallback<MouseMoveEvent>(OnMouseMove);
-        }
+            Application.Quit();
 
+            // Editor
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#endif
+        };
+        
         // 시작할 때는 UI를 숨김
         HideUI();
     }
 
-    private void OnMouseEnter(MouseEnterEvent evt)
+    void OnPointerDown(PointerDownEvent evt)
     {
-        isMouseInside = true;
+        isDragging = true;
+        dragStartY = evt.position.y;
     }
 
-    private void OnMouseLeave(MouseLeaveEvent evt)
+    void OnPointerMove(PointerMoveEvent evt)
     {
-        isMouseInside = false;
-        if (!isDropping)
+        if (!isDragging) return;
+
+        float deltaY = evt.position.y - dragStartY;
+
+        if (deltaY < 0)
         {
-            HideUI();
+            prizeArea.style.top = new Length(deltaY, LengthUnit.Pixel);
         }
     }
 
-    private void OnMouseMove(MouseMoveEvent evt)
+    void OnPointerUp(PointerUpEvent evt)
     {
-        if (!isMouseInside || isDropping) return;
+        isDragging = false;
 
-        // 프레임의 높이를 기준으로 마우스 위치 계산
-        float frameHeight = frame.resolvedStyle.height;
-        float mouseY = evt.localMousePosition.y;
-        float threshold = frameHeight * 0.7f; // 70% 지점을 기준으로
-
-        // 마우스가 아래에서 위로 올라올 때 선물 표시
-        if (mouseY < threshold)
+        if (prizeArea.resolvedStyle.top < -50f)
         {
-            if (!root.style.display.value.Equals(DisplayStyle.Flex))
-            {
-                ShowUI("Prize");
-            }
+            StartCoroutine(AnimateLiftUp());
         }
         else
         {
-            if (!isDropping)
-            {
-                HideUI();
-            }
+            prizeArea.style.top = new Length(0, LengthUnit.Pixel);
         }
+    }
+
+    IEnumerator AnimateLiftUp()
+    {
+        float start = prizeArea.resolvedStyle.top;
+        float end = -150f;
+        float duration = 0.4f;
+        float t = 0f;
+
+        while (t < 1f)
+        {
+            t += Time.deltaTime / duration;
+            float eased = 1 - Mathf.Pow(1 - t, 3);
+            float currentY = Mathf.Lerp(start, end, eased);
+            prizeArea.style.top = new Length(currentY, LengthUnit.Pixel);
+            yield return null;
+        }
+
+        prizeArea.style.top = new Length(end, LengthUnit.Pixel);
     }
 
     void OnCollisionEnter(Collision other)
@@ -119,7 +145,7 @@ public class PrizeSelector : MonoBehaviour
     {
         // Translate
         float startY = -60f;
-        float targetY = 40f;
+        float targetY = 30f;
         
         // Duration
         float duration = 1.0f;
