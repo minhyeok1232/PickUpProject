@@ -27,6 +27,10 @@ public class PrizeSelector : MonoBehaviour
     // 
     private float dragStartY;
     private bool isDragging = false;
+    
+    //
+    private float initialPrizeAreaHeight;
+    private const float minPrizeAreaHeight = 0f;
 
     void Start()
     {
@@ -40,11 +44,9 @@ public class PrizeSelector : MonoBehaviour
         prizeNameLabel = root.Q<Label>("prizeNameLabel");
         prizeArea = root.Q<VisualElement>("prizeArea");
         
-        var dragHandler = giftBox.Q<VisualElement>("dragHandler");
-        
-        dragHandler.RegisterCallback<PointerDownEvent>(OnPointerDown);
-        dragHandler.RegisterCallback<PointerMoveEvent>(OnPointerMove);
-        dragHandler.RegisterCallback<PointerUpEvent>(OnPointerUp);
+        giftBox.RegisterCallback<PointerDownEvent>(OnPointerDown);
+        giftBox.RegisterCallback<PointerMoveEvent>(OnPointerMove);
+        giftBox.RegisterCallback<PointerUpEvent>(OnPointerUp);
 
         exitLabel.clicked += () =>
         {
@@ -64,37 +66,35 @@ public class PrizeSelector : MonoBehaviour
     {
         isDragging = true;
         dragStartY = evt.position.y;
+        initialPrizeAreaHeight = giftBox.resolvedStyle.height;
+        
+        Debug.Log($"GiftBox Top: {giftBox.resolvedStyle.top}, Left: {giftBox.resolvedStyle.left}");
     }
 
     void OnPointerMove(PointerMoveEvent evt)
     {
         if (!isDragging) return;
 
-        float deltaY = evt.position.y - dragStartY;
+        float deltaY = dragStartY - evt.position.y; // 위로 올릴수록 양수
+        float newHeight = Mathf.Max(initialPrizeAreaHeight - deltaY, minPrizeAreaHeight);
 
-        if (deltaY < 0)
-        {
-            prizeArea.style.top = new Length(deltaY, LengthUnit.Pixel);
-        }
+        giftBox.style.height = new Length(newHeight, LengthUnit.Pixel);
     }
-
+    
     void OnPointerUp(PointerUpEvent evt)
     {
         isDragging = false;
 
-        if (prizeArea.resolvedStyle.top < -50f)
+        if (giftBox.resolvedStyle.height <= minPrizeAreaHeight + 1f)
         {
-            StartCoroutine(AnimateLiftUp());
-        }
-        else
-        {
-            prizeArea.style.top = new Length(0, LengthUnit.Pixel);
+            Debug.Log("상자 완전 열림!");
+            // 여기에 연출 추가
         }
     }
 
     IEnumerator AnimateLiftUp()
     {
-        float start = prizeArea.resolvedStyle.top;
+        float start = giftBox.resolvedStyle.top;
         float end = -150f;
         float duration = 0.4f;
         float t = 0f;
@@ -104,11 +104,11 @@ public class PrizeSelector : MonoBehaviour
             t += Time.deltaTime / duration;
             float eased = 1 - Mathf.Pow(1 - t, 3);
             float currentY = Mathf.Lerp(start, end, eased);
-            prizeArea.style.top = new Length(currentY, LengthUnit.Pixel);
+            giftBox.style.top = new Length(currentY, LengthUnit.Pixel);
             yield return null;
         }
 
-        prizeArea.style.top = new Length(end, LengthUnit.Pixel);
+        giftBox.style.top = new Length(end, LengthUnit.Pixel);
     }
 
     void OnCollisionEnter(Collision other)
