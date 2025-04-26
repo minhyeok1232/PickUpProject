@@ -133,7 +133,6 @@ public class PrizeSelector : MonoBehaviour
         if (root == null) return;
 
         root.style.display = DisplayStyle.Flex;
-        if (prizeNameLabel != null) prizeNameLabel.text = prizeName;
 
         if (giftBox != null && frame != null)
         {

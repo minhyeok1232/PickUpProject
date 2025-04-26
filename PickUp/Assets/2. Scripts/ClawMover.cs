@@ -72,7 +72,6 @@ public class ClawMover : MonoBehaviour
     }
 
     void FixedUpdate () {
-        // Sync motor and tubes position
         motor.transform.position = new Vector3(transform.position.x, motor.transform.position.y, transform.position.z);
         tubes.transform.position = new Vector3(tubes.transform.position.x, tubes.transform.position.y, motor.transform.position.z + tubeOffset);
 
@@ -193,9 +192,9 @@ public class ClawMover : MonoBehaviour
     {
         try
         {
-            await UniTask.Delay(2000, cancellationToken: _cts.Token); // 2 seconds
+            await UniTask.Delay(500, cancellationToken: _cts.Token);
             CloseClawAnimation();
-            await UniTask.Delay(2000, cancellationToken: _cts.Token);
+            await UniTask.Delay(500, cancellationToken: _cts.Token);
             isGrabbing = false;
             isReleasing = true;
         }
@@ -209,10 +208,10 @@ public class ClawMover : MonoBehaviour
     {
         try
         {
-            await UniTask.Delay(1500, cancellationToken: _cts.Token);
+            await UniTask.Delay(500, cancellationToken: _cts.Token);
             isLoweringToRelease = true;
             isReleasing = false;
-            await UniTask.Delay(1500, cancellationToken: _cts.Token);
+            await UniTask.Delay(500, cancellationToken: _cts.Token);
         }
         catch (System.OperationCanceledException)
         {
@@ -224,9 +223,9 @@ public class ClawMover : MonoBehaviour
     {
         try
         {
-            await UniTask.Delay(1000, cancellationToken: _cts.Token);
+            await UniTask.Delay(500, cancellationToken: _cts.Token);
             OpenClawAnimation();
-            await UniTask.Delay(1000, cancellationToken: _cts.Token);
+            await UniTask.Delay(500, cancellationToken: _cts.Token);
             isRisingFromBasket = true;
             reachedBasket[0] = false;
             reachedBasket[1] = false;
