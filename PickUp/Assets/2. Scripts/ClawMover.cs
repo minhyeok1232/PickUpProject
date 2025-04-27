@@ -64,21 +64,10 @@ public class ClawMover : MonoBehaviour
 
     void Update()
     {
-        if (canControl)
+        if (canControl && Input.GetKeyDown(KeyCode.Space))
         {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                if (!isGrabbing && !isReleasing)
-                {
-                    isAutoDescending = true;
-                    canControl = false;
-                }
-                else if (isGrabbing)  // 물건을 집은 상태에서 스페이스바를 누르면 바구니로 이동
-                {
-                    isReleasing = true;
-                    canControl = false;
-                }
-            }
+            isAutoDescending = true;
+            canControl = false;
         }
     }
 
@@ -86,6 +75,7 @@ public class ClawMover : MonoBehaviour
         motor.transform.position = new Vector3(transform.position.x, motor.transform.position.y, transform.position.z);
         tubes.transform.position = new Vector3(tubes.transform.position.x, tubes.transform.position.y, motor.transform.position.z + tubeOffset);
 
+        // 맨 처음 Spacebar 누를 때
         if (isAutoDescending && !isGrabbing)
         {
             float descendSpeed = clawSpeed;
@@ -104,51 +94,46 @@ public class ClawMover : MonoBehaviour
                 CloseClawAsync().Forget();
             }
         }
+        // 물건을 바구니로 옮기는 중
         else if (isReleasing)
         {
-            // Handle releasing movement
-            bool reachedHeight = clawHeight.position.y <= maxHeight;
-            bool reachedX = transform.position.x >= leftLimit.transform.position.x + 0.5f;
-            bool reachedZ = transform.position.z >= frontLimit.transform.position.z + 0.5f;
+            // 목표 위치 도달 여부 체크
+            bool reachedHeight = clawHeight.position.y >= maxHeight;
+            bool reachedX = transform.position.x <= leftLimit.transform.position.x + 0.5f;
+            bool reachedZ = transform.position.z <= frontLimit.transform.position.z + 0.5f;
 
-            if (!reachedHeight)
-            {
-                transform.Translate(0, clawSpeed * Time.deltaTime, 0);
-            }
-            else
-            {
-                reachedBasket[0] = true;
-            }
-
+            // x 이동
             if (!reachedX)
             {
                 transform.Translate(speed * -1 * Time.deltaTime, 0, 0);
             }
-            else
-            {
-                reachedBasket[1] = true;
-            }
 
+            // z 이동
             if (!reachedZ)
             {
                 transform.Translate(0, 0, speed * -1 * Time.deltaTime);
             }
-            else
+
+            // y 이동
+            if (!reachedHeight)
             {
-                reachedBasket[2] = true;
+                transform.Translate(0, clawSpeed * Time.deltaTime, 0);
             }
-            
-            if (reachedBasket[0] && reachedBasket[1] && reachedBasket[2])
+
+            // x, y, z 모두 도달하면
+            if (reachedX && reachedZ && reachedHeight)
             {
                 isInBasket = true;
                 isReleasing = false;
-                
-                if (isInBasket) {
+
+                if (isInBasket)
+                {
                     ReleasePrizeInBasketAsync().Forget();
                     isInBasket = false;
                 }
             }
         }
+        // 바구니에서 물건을 놓기 위해 내려가는 중
         else if (isLoweringToRelease)
         {
             if (clawHeight.position.y > minHeight)
@@ -160,6 +145,7 @@ public class ClawMover : MonoBehaviour
                 isLoweringToRelease = false;
             }
         }
+        // 바구니에서 물건을 놓은 후 위로 올라가는 중
         else if (isRisingFromBasket)
         {
             if (clawHeight.position.y <= maxHeight)
@@ -205,9 +191,9 @@ public class ClawMover : MonoBehaviour
         {
             await UniTask.Delay(500, cancellationToken: _cts.Token);
             CloseClawAnimation();
-            await UniTask.Delay(500, cancellationToken: _cts.Token);
+            await UniTask.Delay(2000, cancellationToken: _cts.Token);
             isGrabbing = false;
-            canControl = true;  // 사용자 제어 가능하도록 설정
+            isReleasing = true;
         }
         catch (System.OperationCanceledException)
         {
