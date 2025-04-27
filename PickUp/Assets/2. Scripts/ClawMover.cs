@@ -64,10 +64,21 @@ public class ClawMover : MonoBehaviour
 
     void Update()
     {
-        if (canControl && Input.GetKeyDown(KeyCode.Space))
+        if (canControl)
         {
-            isAutoDescending = true;
-            canControl = false;
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                if (!isGrabbing && !isReleasing)
+                {
+                    isAutoDescending = true;
+                    canControl = false;
+                }
+                else if (isGrabbing)  // 물건을 집은 상태에서 스페이스바를 누르면 바구니로 이동
+                {
+                    isReleasing = true;
+                    canControl = false;
+                }
+            }
         }
     }
 
@@ -196,7 +207,7 @@ public class ClawMover : MonoBehaviour
             CloseClawAnimation();
             await UniTask.Delay(500, cancellationToken: _cts.Token);
             isGrabbing = false;
-            isReleasing = true;
+            canControl = true;  // 사용자 제어 가능하도록 설정
         }
         catch (System.OperationCanceledException)
         {
