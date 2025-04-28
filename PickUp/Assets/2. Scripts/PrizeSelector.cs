@@ -10,20 +10,26 @@ public class PrizeSelector : MonoBehaviour
     private UIDocument uiDocument;
     
     [SerializeField]
-    private GameObject effectPrefab;
+    private GameObject[] effectPrefab;
     
     [SerializeField]
-    private Transform effectSpawnPoint;
+    private Transform[] effectSpawnPoint;
     
     private VisualElement root;
     private VisualElement frame;
     private VisualElement giftBox;
     private VisualElement prizeArea;
+    private VisualElement present;
+    
+    // private VisualElement exitIcon;
+    // private VisualElement retryIcon;
+    
     
     private Label prizeNameLabel;
     private Label priceLabel;
     
     private Button exitLabel;
+    //private Button groupButton;
 
     private bool isDropping = false;
     private bool isMouseInside = false;
@@ -33,7 +39,9 @@ public class PrizeSelector : MonoBehaviour
     private float initialPrizeAreaHeight;
     private const float minPrizeAreaHeight = 0f;
     
-    private GameObject currentPrizeObject;
+     private GameObject currentPrizeObject;
+    // private GameObject spawnedEffectInstance;
+    // private StyleBackground originalBackground;
 
     void Start()
     {
@@ -41,17 +49,30 @@ public class PrizeSelector : MonoBehaviour
         root = uiDocument.rootVisualElement.Q<VisualElement>("root");
         if (root == null) return;
 
+    //    originalBackground = root.style.backgroundImage;
+        
         exitLabel = root.Q<Button>("exitLabel");
         frame = root.Q<VisualElement>("frame");
         giftBox = root.Q<VisualElement>("giftBox");
         prizeNameLabel = root.Q<Label>("prizeNameLabel");
         prizeArea = root.Q<VisualElement>("prizeArea");
         priceLabel = root.Q<Label>("priceLabel");
+        present = root.Q<VisualElement>("present");
+        
+        // groupButton = root.Q<Button>("groupButton");
+        // exitIcon = groupButton.Q<VisualElement>("exitIcon");
+        // retryIcon = groupButton.Q<VisualElement>("retryIcon");
         
         prizeArea.RegisterCallback<PointerDownEvent>(OnPointerDown);
         prizeArea.RegisterCallback<PointerMoveEvent>(OnPointerMove);
         prizeArea.RegisterCallback<PointerUpEvent>(OnPointerUp);
 
+
+        // retryIcon.RegisterCallback<PointerDownEvent>(evt =>
+        // {
+        //     OnExitOrRetry();
+        // });
+        
         exitLabel.clicked += () =>
         {
             Application.Quit();
@@ -90,12 +111,37 @@ public class PrizeSelector : MonoBehaviour
         float frameHeight = frame.resolvedStyle.height;
         float currentHeight = prizeArea.resolvedStyle.height;
 
+        if (currentPrizeObject.gameObject.layer == 11)
+        {
+            present.style.backgroundImage = new StyleBackground(Resources.Load<Texture2D>("8. Images/Airpot"));
+        }
+        else if (currentPrizeObject.gameObject.layer == 13)
+        {
+            present.style.backgroundImage = new StyleBackground(Resources.Load<Texture2D>("8. Images/Mouse"));
+        }
+        else if (currentPrizeObject.gameObject.layer == 14)
+        {
+            present.style.backgroundImage = new StyleBackground(Resources.Load<Texture2D>("8. Images/clock"));
+        }
+        else if (currentPrizeObject.gameObject.layer == 10)
+        {
+            present.style.backgroundImage = new StyleBackground(Resources.Load<Texture2D>("8. Images/iPhone"));
+        }
+        else if (currentPrizeObject.gameObject.layer == 9)
+        {
+            present.style.backgroundImage = new StyleBackground(Resources.Load<Texture2D>("8. Images/wallet"));
+        }
+        
+        
         if (currentHeight <= frameHeight / 2.0f) // 절반 이상 열었으면
         {
             StartCoroutine(AnimateLiftUpDown(true));
             PlayEffect();
             // 밀어올려서 상품확인하기에서
             // 모든 상품의 Tag는 Prize이며, 각 상품마다 Layer을 지정해서, 구분을 시켜준다.
+            
+            exitLabel.style.display = DisplayStyle.None;
+            
             if (currentPrizeObject.gameObject.layer == 11)
             {
                 prizeNameLabel.text = "AirPods Pro Gen 3";
@@ -103,6 +149,47 @@ public class PrizeSelector : MonoBehaviour
 
                 priceLabel.text = "51,000원";
             }
+            else if (currentPrizeObject.gameObject.layer == 13)
+            {
+                prizeNameLabel.text = "G502 Wired Gaming Mouse";
+                prizeNameLabel.style.fontSize = 28;
+
+                priceLabel.text = "109,000원";
+            }
+            else if (currentPrizeObject.gameObject.layer == 14)
+            {
+                prizeNameLabel.text = "Omega Speedmaster Moonwatch";
+                prizeNameLabel.style.fontSize = 28;
+
+                priceLabel.text = "2,380,000원";
+            }
+            else if (currentPrizeObject.gameObject.layer == 10)
+            {
+                prizeNameLabel.text = "Iphone 16 pro max";
+                prizeNameLabel.style.fontSize = 28;
+
+                priceLabel.text = "1,580,000원";
+            }
+            else if (currentPrizeObject.gameObject.layer == 9)
+            {
+                prizeNameLabel.text = "Prada Leather Card Wallet Black";
+                prizeNameLabel.style.fontSize = 28;
+
+                priceLabel.text = "780,000원";
+            }
+            
+            // root 기본 이미지를 없애고, RenderTexture로 바꾸기
+            if (root != null)
+            {
+                if (effectPrefab[1] == null) return;
+                if (effectSpawnPoint[1] == null) return;
+                
+                GameObject spawnedEffectInstance = Instantiate(effectPrefab[1], effectSpawnPoint[1].position, Quaternion.identity);
+            }
+            
+            // 이후, 뽑기에서 exitIcon이나, retryIcon을 누르면 effectInstnace를 Destroy하고,
+            // 원래  배경색상도변경
+            // present.style.backgroundImage도변경
         }
         else 
         {
@@ -110,12 +197,30 @@ public class PrizeSelector : MonoBehaviour
         }
     }
     
+    // private void OnExitOrRetry()
+    // {
+    //     // 이펙트가 생성돼있으면 제거
+    //     if (spawnedEffectInstance != null)
+    //     {
+    //         Destroy(spawnedEffectInstance);
+    //         spawnedEffectInstance = null;
+    //     }
+    //
+    //     // root 배경 원상복구
+    //     if (root != null)
+    //     {
+    //         root.style.backgroundImage = originalBackground;
+    //     }
+    //
+    //     // Exit UI 닫거나, Retry UI 열기 등 추가 로직
+    // }
+    
     private void PlayEffect()
     {
-        if (effectPrefab == null) return;
-        if (effectSpawnPoint == null) return;
+        if (effectPrefab[0] == null) return;
+        if (effectSpawnPoint[0] == null) return;
 
-        GameObject effectInstance = Instantiate(effectPrefab, effectSpawnPoint.position, Quaternion.identity);
+        GameObject effectInstance = Instantiate(effectPrefab[0], effectSpawnPoint[0].position, Quaternion.identity);
         Destroy(effectInstance, 2.0f);
     }
 

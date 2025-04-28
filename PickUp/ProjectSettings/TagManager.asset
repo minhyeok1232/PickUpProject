@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 3
   tags:
   - Prize
+  - FxTemporaire
+  - Airpot
   layers:
   - Default
   - TransparentFX
@@ -15,12 +17,12 @@ TagManager:
   - Android
   - Soccer
   - Tennis
-  - Cube
-  - Basket
-  - Dice
+  - Wallet
+  - iPhone
+  - Airpot
   - Effects
-  - 
-  - 
+  - Mouse
+  - Clock
   - 
   - 
   - 
