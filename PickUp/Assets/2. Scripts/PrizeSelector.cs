@@ -1,36 +1,39 @@
-using System;
-using UnityEditor.Rendering;
-using UnityEditor.TerrainTools;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Cysharp.Threading.Tasks;
 using System.Threading;
-using UnityEditor;
 
 public class PrizeSelector : MonoBehaviour
 {
     [SerializeField]
     private UIDocument uiDocument;
+    
+    [SerializeField]
+    private GameObject effectPrefab;
+    
+    [SerializeField]
+    private Transform effectSpawnPoint;
+    
     private VisualElement root;
-    private Label prizeNameLabel;
-    private Button exitLabel;
     private VisualElement frame;
     private VisualElement giftBox;
-    
     private VisualElement prizeArea;
+    
+    private Label prizeNameLabel;
+    private Label priceLabel;
+    
+    private Button exitLabel;
 
     private bool isDropping = false;
     private bool isMouseInside = false;
-    
-    // 
-    private float dragStartY;
     private bool isDragging = false;
     
-    //
+    private float dragStartY;
     private float initialPrizeAreaHeight;
     private const float minPrizeAreaHeight = 0f;
+    
+    private GameObject currentPrizeObject;
 
     void Start()
     {
@@ -43,6 +46,7 @@ public class PrizeSelector : MonoBehaviour
         giftBox = root.Q<VisualElement>("giftBox");
         prizeNameLabel = root.Q<Label>("prizeNameLabel");
         prizeArea = root.Q<VisualElement>("prizeArea");
+        priceLabel = root.Q<Label>("priceLabel");
         
         prizeArea.RegisterCallback<PointerDownEvent>(OnPointerDown);
         prizeArea.RegisterCallback<PointerMoveEvent>(OnPointerMove);
@@ -89,11 +93,30 @@ public class PrizeSelector : MonoBehaviour
         if (currentHeight <= frameHeight / 2.0f) // 절반 이상 열었으면
         {
             StartCoroutine(AnimateLiftUpDown(true));
+            PlayEffect();
+            // 밀어올려서 상품확인하기에서
+            // 모든 상품의 Tag는 Prize이며, 각 상품마다 Layer을 지정해서, 구분을 시켜준다.
+            if (currentPrizeObject.gameObject.layer == 11)
+            {
+                prizeNameLabel.text = "AirPods Pro Gen 3";
+                prizeNameLabel.style.fontSize = 28;
+
+                priceLabel.text = "51,000원";
+            }
         }
         else 
         {
             StartCoroutine(AnimateLiftUpDown(false));
         }
+    }
+    
+    private void PlayEffect()
+    {
+        if (effectPrefab == null) return;
+        if (effectSpawnPoint == null) return;
+
+        GameObject effectInstance = Instantiate(effectPrefab, effectSpawnPoint.position, Quaternion.identity);
+        Destroy(effectInstance, 2.0f);
     }
 
     IEnumerator AnimateLiftUpDown(bool bUp)
@@ -123,6 +146,7 @@ public class PrizeSelector : MonoBehaviour
         
         if (other.gameObject.CompareTag("Prize"))
         {
+            currentPrizeObject = other.gameObject;
             ShowUI(other.gameObject.name);
             isDropping = true;
         }

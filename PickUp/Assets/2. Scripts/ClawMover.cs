@@ -157,7 +157,7 @@ public class ClawMover : MonoBehaviour
             }
             else
             {
-                canControl = true;
+                // canControl은 다시뽑기를 누르게되면 그 때 true설정한다.
                 isRisingFromBasket = false;
             }
         }
