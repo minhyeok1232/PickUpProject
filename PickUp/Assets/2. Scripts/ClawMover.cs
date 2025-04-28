@@ -38,6 +38,7 @@ public class ClawMover : MonoBehaviour
     private bool isAutoDescending;
     private bool isGrabbing;
     private CancellationTokenSource _cts;
+    public bool isClawActivated;
 
     void Start () {
         clawAnimator = claw.gameObject.GetComponent<Animator>();
@@ -46,6 +47,7 @@ public class ClawMover : MonoBehaviour
         isReleasing = false;
         isAutoDescending = false;
         isGrabbing = false;
+        isClawActivated = false;
         _cts = new CancellationTokenSource();
         
         // Initialize basket flags
@@ -68,14 +70,15 @@ public class ClawMover : MonoBehaviour
         {
             isAutoDescending = true;
             canControl = false;
+            isClawActivated = true;
         }
     }
 
     void FixedUpdate () {
-        motor.transform.position = new Vector3(transform.position.x, motor.transform.position.y, transform.position.z);
+        motor.transform.position = new Vector3(transform.position.x, motor.transform.position.y, motor.transform.position.z);
         tubes.transform.position = new Vector3(tubes.transform.position.x, tubes.transform.position.y, motor.transform.position.z + tubeOffset);
 
-        // 맨 처음 Spacebar 누를 때
+        // 맨 처음 Spacebar 누를 때 또는 타이머가 0이 되었을 때
         if (isAutoDescending && !isGrabbing)
         {
             float descendSpeed = clawSpeed;
@@ -246,6 +249,16 @@ public class ClawMover : MonoBehaviour
         if (clawAnimator) {
             clawAnimator.SetBool("Open", false);
             clawAnimator.SetBool("Close", true);
+        }
+    }
+
+    public void AutoGrabWhenTimerZero()
+    {
+        if (!isClawActivated && canControl)
+        {
+            isAutoDescending = true;
+            canControl = false;
+            isClawActivated = true;
         }
     }
 }

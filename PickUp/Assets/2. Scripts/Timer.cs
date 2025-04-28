@@ -5,11 +5,13 @@ public class Timer : MonoBehaviour
 {
     public TMP_Text timeText;
     private float gamePlayTimer = 15.0f;
-    public bool  isRunning = true;
+    public bool isRunning = true;
+    private ClawMover clawMover;
 
     void Start()
     {
         timeText.text = "15";
+        clawMover = FindObjectOfType<ClawMover>();
     }
     
     void Update()
@@ -25,7 +27,10 @@ public class Timer : MonoBehaviour
             {
                 gamePlayTimer = 0;
                 isRunning = false;
-                // 강제로 뽑아내려쳐버려
+                if (clawMover)
+                {
+                    clawMover.AutoGrabWhenTimerZero();
+                }
             }
         }
     }
@@ -33,7 +38,6 @@ public class Timer : MonoBehaviour
     void UpdateTimerDisplay(float time)
     {
         int seconds = Mathf.FloorToInt(time);
-
         timeText.text = seconds.ToString("00");      
     }
 }
