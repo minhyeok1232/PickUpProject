@@ -324,7 +324,51 @@ public class PrizeSelector : MonoBehaviour
 
     private void OnRetryClicked()
     {
-        Destroy(spawnedEffectInstance);
+        // 효과 제거
+        if (spawnedEffectInstance != null)
+        {
+            Destroy(spawnedEffectInstance);
+            spawnedEffectInstance = null;
+        }
+
+        // 상태 변수 초기화
+        isDropping = false;
+        isMouseInside = false;
+        isDragging = false;
+        dragStartY = 0f;
+        initialPrizeAreaHeight = 0f;
+
+        // UI 요소 초기화
+        if (giftBox != null)
+        {
+            giftBox.style.top = 0;
+            giftBox.style.height = new Length(240, LengthUnit.Pixel);
+            giftBox.style.rotate = new StyleRotate(new Rotate(0));
+            giftBox.style.translate = new StyleTranslate(new Translate(0, 0, 0));
+        }
+
+        if (prizeArea != null)
+        {
+            prizeArea.style.height = new Length(240, LengthUnit.Pixel);
+            prizeArea.style.translate = new StyleTranslate(new Translate(0, 0, 0));
+        }
+
+        // 텍스트 초기화
+        if (prizeNameLabel != null)
+        {
+            prizeNameLabel.text = "▲ 밀어올려서 상품 확인하기 ▲";
+            prizeNameLabel.style.fontSize = 24; // 필요시 폰트 크기도 초기화
+        }
+
+        if (priceLabel != null)
+        {
+            priceLabel.text = "";
+        }
+
+        // 버튼 표시 초기화 (숨기고 다시 보여줄지 판단)
+        retryButton.style.display = DisplayStyle.None;
+        exitButton.style.display = DisplayStyle.None;
+        exitLabel.style.display = DisplayStyle.Flex; // 필요시 다시 보여줌
     }
 
     private void OnExitClicked()

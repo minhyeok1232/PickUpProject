@@ -9731,7 +9731,6 @@ MonoBehaviour:
   effectSpawnPoint:
   - {fileID: 1783622976}
   - {fileID: 1020115302}
-  mover: {fileID: 8585202645243961676}
 --- !u!23 &5510452376477292753
 MeshRenderer:
   m_ObjectHideFlags: 0
