@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using Cysharp.Threading.Tasks;
 using System.Threading;
+using NUnit.Framework;
 
 public class PrizeSelector : MonoBehaviour
 {
@@ -21,15 +22,12 @@ public class PrizeSelector : MonoBehaviour
     private VisualElement prizeArea;
     private VisualElement present;
     
-    // private VisualElement exitIcon;
-    // private VisualElement retryIcon;
-    
-    
     private Label prizeNameLabel;
     private Label priceLabel;
     
     private Button exitLabel;
-    //private Button groupButton;
+    private Button exitButton;
+    private Button retryButton;
 
     private bool isDropping = false;
     private bool isMouseInside = false;
@@ -40,7 +38,7 @@ public class PrizeSelector : MonoBehaviour
     private const float minPrizeAreaHeight = 0f;
     
      private GameObject currentPrizeObject;
-    // private GameObject spawnedEffectInstance;
+     private GameObject spawnedEffectInstance;
     // private StyleBackground originalBackground;
 
     void Start()
@@ -48,40 +46,28 @@ public class PrizeSelector : MonoBehaviour
         if (uiDocument == null) return;
         root = uiDocument.rootVisualElement.Q<VisualElement>("root");
         if (root == null) return;
-
-    //    originalBackground = root.style.backgroundImage;
+        
+        present   = root.Q<VisualElement>("present");
+        frame     = root.Q<VisualElement>("frame");
+        giftBox   = root.Q<VisualElement>("giftBox");
+        prizeArea = root.Q<VisualElement>("prizeArea");
+        
+        prizeNameLabel = root.Q<Label>("prizeNameLabel");
+        priceLabel     = root.Q<Label>("priceLabel");
         
         exitLabel = root.Q<Button>("exitLabel");
-        frame = root.Q<VisualElement>("frame");
-        giftBox = root.Q<VisualElement>("giftBox");
-        prizeNameLabel = root.Q<Label>("prizeNameLabel");
-        prizeArea = root.Q<VisualElement>("prizeArea");
-        priceLabel = root.Q<Label>("priceLabel");
-        present = root.Q<VisualElement>("present");
+        exitButton  = root.Q<Button>("exitButton");
+        retryButton = root.Q<Button>("retryButton");
         
-        // groupButton = root.Q<Button>("groupButton");
-        // exitIcon = groupButton.Q<VisualElement>("exitIcon");
-        // retryIcon = groupButton.Q<VisualElement>("retryIcon");
+        retryButton.style.display = DisplayStyle.None;
+        exitButton.style.display  = DisplayStyle.None;
         
         prizeArea.RegisterCallback<PointerDownEvent>(OnPointerDown);
         prizeArea.RegisterCallback<PointerMoveEvent>(OnPointerMove);
         prizeArea.RegisterCallback<PointerUpEvent>(OnPointerUp);
 
 
-        // retryIcon.RegisterCallback<PointerDownEvent>(evt =>
-        // {
-        //     OnExitOrRetry();
-        // });
-        
-        exitLabel.clicked += () =>
-        {
-            Application.Quit();
-
-            // Editor
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#endif
-        };
+        exitLabel.clicked += () => OnExitClicked();
         
         // 시작할 때는 UI를 숨김
         HideUI();
@@ -184,12 +170,22 @@ public class PrizeSelector : MonoBehaviour
                 if (effectPrefab[1] == null) return;
                 if (effectSpawnPoint[1] == null) return;
                 
-                GameObject spawnedEffectInstance = Instantiate(effectPrefab[1], effectSpawnPoint[1].position, Quaternion.identity);
+                spawnedEffectInstance = Instantiate(effectPrefab[1], effectSpawnPoint[1].position, Quaternion.identity);
             }
             
             // 이후, 뽑기에서 exitIcon이나, retryIcon을 누르면 effectInstnace를 Destroy하고,
             // 원래  배경색상도변경
             // present.style.backgroundImage도변경
+            // 1. retryButton, exitButton -> Enable
+            retryButton.style.display = DisplayStyle.Flex;
+            exitButton.style.display  = DisplayStyle.Flex;
+            
+            // 2. Button Event Add
+            retryButton.clicked -= OnRetryClicked; 
+            retryButton.clicked += OnRetryClicked;
+
+            exitButton.clicked -= OnExitClicked;
+            exitButton.clicked += OnExitClicked;
         }
         else 
         {
@@ -197,27 +193,9 @@ public class PrizeSelector : MonoBehaviour
         }
     }
     
-    // private void OnExitOrRetry()
-    // {
-    //     // 이펙트가 생성돼있으면 제거
-    //     if (spawnedEffectInstance != null)
-    //     {
-    //         Destroy(spawnedEffectInstance);
-    //         spawnedEffectInstance = null;
-    //     }
-    //
-    //     // root 배경 원상복구
-    //     if (root != null)
-    //     {
-    //         root.style.backgroundImage = originalBackground;
-    //     }
-    //
-    //     // Exit UI 닫거나, Retry UI 열기 등 추가 로직
-    // }
-    
     private void PlayEffect()
     {
-        if (effectPrefab[0] == null) return;
+        if (effectPrefab[0]     == null) return;
         if (effectSpawnPoint[0] == null) return;
 
         GameObject effectInstance = Instantiate(effectPrefab[0], effectSpawnPoint[0].position, Quaternion.identity);
@@ -342,6 +320,21 @@ public class PrizeSelector : MonoBehaviour
             await UniTask.Yield(cancellationToken);
         }
         hasBounced = false;
+    }
+
+    private void OnRetryClicked()
+    {
+        Destroy(spawnedEffectInstance);
+    }
+
+    private void OnExitClicked()
+    {
+        Application.Quit();
+
+        // Editor
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
     }
 
     private void HideUI()
