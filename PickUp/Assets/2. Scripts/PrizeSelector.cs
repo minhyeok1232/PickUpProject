@@ -324,6 +324,8 @@ public class PrizeSelector : MonoBehaviour
 
     private void OnRetryClicked()
     {
+        Destroy(currentPrizeObject);
+        
         if (spawnedEffectInstance != null)
         {
             Destroy(spawnedEffectInstance);
@@ -343,6 +345,11 @@ public class PrizeSelector : MonoBehaviour
             giftBox.style.height = new Length(240, LengthUnit.Pixel);
             giftBox.style.rotate = new StyleRotate(new Rotate(0));
             giftBox.style.translate = new StyleTranslate(new Translate(0, 0, 0));
+        }
+
+        if (present != null)
+        {
+            present.style.backgroundImage = new StyleBackground();
         }
 
         if (prizeArea != null)
