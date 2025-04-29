@@ -75,8 +75,8 @@ public class ClawMover : MonoBehaviour
     }
 
     void FixedUpdate () {
-        motor.transform.position = new Vector3(transform.position.x, motor.transform.position.y, motor.transform.position.z);
-        tubes.transform.position = new Vector3(tubes.transform.position.x, tubes.transform.position.y, motor.transform.position.z + tubeOffset);
+        motor.transform.position = new Vector3(transform.position.x, motor.transform.position.y, transform.position.z);
+        tubes.transform.position = new Vector3(transform.position.x, tubes.transform.position.y, transform.position.z + tubeOffset);
 
         // 맨 처음 Spacebar 누를 때 또는 타이머가 0이 되었을 때
         if (isAutoDescending && !isGrabbing)

@@ -3,41 +3,51 @@ using TMPro;
 
 public class Timer : MonoBehaviour
 {
-    public TMP_Text timeText;
-    private float gamePlayTimer = 15.0f;
-    public bool isRunning = true;
+    [SerializeField]
     private ClawMover clawMover;
+    
+    public TMP_Text timeText;
+    
+    public float startTime = 15.0f;
+    
+    private float gamePlayTimer;
+    
+    private bool hasTriggered = false;
+    public  bool isRunning = true;
+    
 
     void Start()
     {
-        timeText.text = "15";
-        clawMover = FindObjectOfType<ClawMover>();
+        gamePlayTimer = startTime;
+        UpdateTimerDisplay(gamePlayTimer);
     }
-    
+
     void Update()
     {
-        if (isRunning)
+        if (!isRunning || hasTriggered) return;
+
+        gamePlayTimer -= Time.deltaTime;
+        
+        if (gamePlayTimer <= 0f)
         {
-            if (gamePlayTimer > 0)
-            {
-                gamePlayTimer -= Time.deltaTime;
-                UpdateTimerDisplay(gamePlayTimer);
-            }
-            else
-            {
-                gamePlayTimer = 0;
-                isRunning = false;
-                if (clawMover)
-                {
-                    clawMover.AutoGrabWhenTimerZero();
-                }
-            }
+            gamePlayTimer = 0f;
+            isRunning = false;
+            TriggerTimeout();
         }
+
+        UpdateTimerDisplay(gamePlayTimer);
     }
 
     void UpdateTimerDisplay(float time)
     {
-        int seconds = Mathf.FloorToInt(time);
-        timeText.text = seconds.ToString("00");      
+        int seconds = Mathf.FloorToInt(Mathf.Max(time, 0f));
+        timeText.text = $"남은시간 {seconds}초";
+    }
+
+    void TriggerTimeout()
+    {
+        hasTriggered = true;
+        
+        if(clawMover) clawMover.AutoGrabWhenTimerZero();
     }
 }
