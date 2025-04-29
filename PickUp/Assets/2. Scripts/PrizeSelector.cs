@@ -8,6 +8,12 @@ using NUnit.Framework;
 public class PrizeSelector : MonoBehaviour
 {
     [SerializeField]
+    private Timer timer;
+
+    [SerializeField] 
+    private ClawMover mover;
+    
+    [SerializeField]
     private UIDocument uiDocument;
     
     [SerializeField]
@@ -182,8 +188,8 @@ public class PrizeSelector : MonoBehaviour
             
             // 2. Button Event Add
             retryButton.clicked -= OnRetryClicked; 
-            retryButton.clicked += OnRetryClicked;
-
+            retryButton.clicked += OnRetryClicked;  // 이벤트가 들어왔어? 
+            
             exitButton.clicked -= OnExitClicked;
             exitButton.clicked += OnExitClicked;
         }
@@ -322,11 +328,11 @@ public class PrizeSelector : MonoBehaviour
         hasBounced = false;
     }
 
-    private void OnRetryClicked()
+    public void OnRetryClicked()
     {
         Destroy(currentPrizeObject);
         
-        if (spawnedEffectInstance != null)
+        if (spawnedEffectInstance)
         {
             Destroy(spawnedEffectInstance);
             spawnedEffectInstance = null;
@@ -373,6 +379,9 @@ public class PrizeSelector : MonoBehaviour
         exitButton.style.display = DisplayStyle.None;
         exitLabel.style.display = DisplayStyle.Flex;
 
+        timer.SetTimer();
+        mover.canControl = true;
+        
         HideUI();
     }
 

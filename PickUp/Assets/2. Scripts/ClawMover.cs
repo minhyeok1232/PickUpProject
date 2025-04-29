@@ -5,7 +5,6 @@ using System.Threading;
 
 public class ClawMover : MonoBehaviour 
 {
-
     public float maxHeight;
     public float minHeight;
     public float tubeOffset;
@@ -37,6 +36,7 @@ public class ClawMover : MonoBehaviour
     private bool isRisingFromBasket;
     private bool isAutoDescending;
     private bool isGrabbing;
+    
     private CancellationTokenSource _cts;
     public bool isClawActivated;
 
@@ -157,10 +157,6 @@ public class ClawMover : MonoBehaviour
             }
             else
             {
-                // canControl은 다시뽑기를 누르게되면 그 때 true설정한다.
-                // 그와 동시에 시간초기화
-                canControl = true;
-                
                 isRisingFromBasket = false;
             }
         }
@@ -264,4 +260,5 @@ public class ClawMover : MonoBehaviour
             isClawActivated = true;
         }
     }
+    
 }

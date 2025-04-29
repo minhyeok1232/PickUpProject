@@ -18,6 +18,8 @@ public class Timer : MonoBehaviour
 
     void Start()
     {
+        SetTimer();
+        
         gamePlayTimer = startTime;
         UpdateTimerDisplay(gamePlayTimer);
     }
@@ -25,6 +27,12 @@ public class Timer : MonoBehaviour
     void Update()
     {
         if (!isRunning || hasTriggered) return;
+        
+        if (!clawMover.canControl)
+        {
+            isRunning = false;
+            return;
+        }
 
         gamePlayTimer -= Time.deltaTime;
         
@@ -42,6 +50,11 @@ public class Timer : MonoBehaviour
     {
         int seconds = Mathf.FloorToInt(Mathf.Max(time, 0f));
         timeText.text = $"남은시간 {seconds}초";
+        
+        if (seconds <= 5)
+            timeText.color = Color.red; 
+        else
+            timeText.color = Color.white;
     }
 
     void TriggerTimeout()
@@ -49,5 +62,12 @@ public class Timer : MonoBehaviour
         hasTriggered = true;
         
         if(clawMover) clawMover.AutoGrabWhenTimerZero();
+    }
+
+    public void SetTimer()
+    {
+        startTime = 15.0f;
+        gamePlayTimer = startTime;
+        isRunning = true;
     }
 }

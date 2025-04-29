@@ -9571,6 +9571,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf7f468e00e364b429af39741c2996e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  timer: {fileID: 580135782}
+  mover: {fileID: 8585202645243961676}
   uiDocument: {fileID: 2038161976}
   effectPrefab:
   - {fileID: 1590415177872986601, guid: acdb90624a404aa438447006f1026065, type: 3}
