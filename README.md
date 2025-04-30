@@ -33,6 +33,17 @@
 
 ---
 
+### UniTask
+<details>
+  <summary>🎇 자세히 </summary>
+
+![image](https://github.com/user-attachments/assets/f2d37d22-b87d-46ac-9bd9-2eefdf9d0808)
+- 비동기를 처리하는 유니티 내장 Coroutine 대신, UniTask를 처리하여 발생되는 GC(가비지 컬렉션)을 최소화
+
+</details>
+
+---
+
 ### Tag와 Layer 분리
 
 <details>
