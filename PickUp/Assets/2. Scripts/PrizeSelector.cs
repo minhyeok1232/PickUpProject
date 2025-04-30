@@ -127,7 +127,7 @@ public class PrizeSelector : MonoBehaviour
         
         if (currentHeight <= frameHeight / 2.0f) // 절반 이상 열었으면
         {
-            StartCoroutine(AnimateLiftUpDown(true));
+            AnimateLiftUpDownAsync(true).Forget();
             PlayEffect();
             // 밀어올려서 상품확인하기에서
             // 모든 상품의 Tag는 Prize이며, 각 상품마다 Layer을 지정해서, 구분을 시켜준다.
@@ -195,7 +195,7 @@ public class PrizeSelector : MonoBehaviour
         }
         else 
         {
-            StartCoroutine(AnimateLiftUpDown(false));
+            AnimateLiftUpDownAsync(false).Forget();
         }
     }
     
@@ -208,22 +208,23 @@ public class PrizeSelector : MonoBehaviour
         Destroy(effectInstance, 2.0f);
     }
 
-    IEnumerator AnimateLiftUpDown(bool bUp)
+    public async UniTask AnimateLiftUpDownAsync(bool bUp)
     {
         float startHeight = prizeArea.resolvedStyle.height;
-        float endHeight = 0.0f;
-        if (!bUp) endHeight = frame.resolvedStyle.height;  
-        
-        float duration = 0.4f;
-        float t = 0f;
+        float endHeight = bUp ? 0.0f : frame.resolvedStyle.height;
 
-        while (t < 1f)
+        float duration = 0.4f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
         {
-            t += Time.deltaTime / duration;
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
             float eased = 1 - Mathf.Pow(1 - t, 3); // EaseOutCubic
             float currentHeight = Mathf.Lerp(startHeight, endHeight, eased);
             prizeArea.style.height = new Length(currentHeight, LengthUnit.Pixel);
-            yield return null;
+
+            await UniTask.Yield(); // 다음 프레임까지 대기
         }
 
         prizeArea.style.height = new Length(endHeight, LengthUnit.Pixel);
